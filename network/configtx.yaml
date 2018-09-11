@@ -1,0 +1,95 @@
+  Capabilities:
+    Global: &ChannelCapabilities
+      V1_1: true
+
+    Orderer: &OrdererCapabilities
+      V1_1: true
+
+    Application: &ApplicationCapabilities
+      V1_1: true
+
+  Organizations:
+    - &TradeOrdererOrg
+      Name: TradeOrdererOrg
+      ID: TradeOrdererMSP
+      MSPDir: crypto-config/ordererOrganizations/trade.com/msp
+
+    - &ExporterOrg
+      Name: ExporterOrg
+      ID: ExporterOrgMSP
+      MSPDir: crypto-config/peerOrganizations/exporterorg.trade.com/msp
+      AnchorPeers:
+        - Host: peer0.exporterorg.trade.com
+          Port: 7051
+
+    - &ImporterOrg
+      Name: ImporterOrg
+      ID: ImporterOrgMSP
+      MSPDir: crypto-config/peerOrganizations/importerorg.trade.com/msp
+      AnchorPeers:
+        - Host: peer0.importerorg.trade.com
+          Port: 7051
+
+    - &CarrierOrg
+      Name: CarrierOrg
+      ID: CarrierOrgMSP
+      MSPDir: crypto-config/peerOrganizations/carrierorg.trade.com/msp
+      AnchorPeers:
+        - Host: peer0.carrierorg.trade.com
+          Port: 7051
+
+    - &RegulatorOrg
+      Name: RegulatorOrg
+      ID: RegulatorOrgMSP
+      MSPDir: crypto-config/peerOrganizations/importerorg.trade.com/msp
+      AnchorPeers:
+        - Host: peer0.regulatororg.trade.com
+          Port: 7051
+
+  Orderer: &OrdererDefaults
+    OrdererType: solo
+    Addresses:
+      - orderer.trade.com:7050
+    BatchTimeout: 2s
+    BatchSize:
+      MaxMessageCount: 10
+      AbsoluteMaxBytes: 99 MB
+      PreferredMaxBytes: 512 KB
+    Kafka:
+      Brokers:
+        - 127.0.0.1:9092
+    Organizations:
+
+  Application: &ApplicationDefaults
+    Organizations:
+
+  Profiles:
+    FourOrgsTradeOrdererGenesis:
+      Capabilities:
+        <<: *ChannelCapabilities
+      Orderer:
+        <<: *OrdererDefaults
+        Organizations:
+          - *TradeOrdererOrg
+        Capabilities:
+          <<: *OrdererCapabilities
+      Consortiums:
+        TradeConsortium:
+          Organizations:
+            - *ExporterOrg
+            - *ImporterOrg
+            - *CarrierOrg
+            - *RegulatorOrg
+  
+    FourOrgsTradeChannel:
+      Consortium: TradeConsortium
+      Application:
+        <<: *ApplicationDefaults
+        Organizations:
+          - *ExporterOrg
+          - *ImporterOrg
+          - *CarrierOrg
+          - *RegulatorOrg
+        Capabilities:
+          <<: *ApplicationCapabilities
+
